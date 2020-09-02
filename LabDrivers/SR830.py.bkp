@@ -113,7 +113,7 @@ class Instrument(Tool.MeasInstr):
         Args:
             amplitude (float): RMS voltage output of the reference channel
         """
-        self.write('SLVL ' + str(amplitude))
+        self.write('SLVL' + str(amplitude))
 
     def get_amplitude(self):
         """ Query the current reference channel output amplitude """
