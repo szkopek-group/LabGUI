@@ -135,6 +135,20 @@ class Instrument(Tool.MeasInstr):
         if not self.DEBUG:
             return float(self.ask('FREQ?'))
 
+
+    def set_tau(self, tau_enum):
+        if not self.DEBUG:
+            self.write('OFLT '+str(tau_enum))
+            return int(self.ask('OFLT? '))
+        else:
+            return 20
+
+    def get_tau(self):
+        if not self.DEBUG:
+            return int(self.ask('OFLT? '))
+        else:
+            return 20
+
     def set_harm(self, harm):
         """ Sets the harmonic number to measure. Use set_harm(1) to measure
         at the reference frequency itself.

@@ -16,6 +16,8 @@ else:
 from LabDrivers import SR830 
 from numpy import logspace
 from math import log10
+import time
+import numpy as np
 
 class BodeWidget(QtGui.QWidget):
     """This example widget is used to showcase how to create custom widgets."""
@@ -59,10 +61,10 @@ class BodeWidget(QtGui.QWidget):
             )
         
         self.grid = QtGui.QGridLayout()  
-        self.FreqLB = 1
-        self.FreqUB = 100
+        self.FreqLB = 0.01
+        self.FreqUB = 100e3
         self.df = 0.001
-        self.log_num_samples = 10
+        self.log_num_samples = 1000
         self.log_current_sample = 0
         self.logspace = []
         temp = logspace(log10(self.FreqLB), log10(self.FreqUB), self.log_num_samples, endpoint=True)
@@ -74,20 +76,22 @@ class BodeWidget(QtGui.QWidget):
         #self.logspace.insert(0, self.FreqLB)
         self.log_num_samples = len(self.logspace)
         self.iterations = 1
-        self.time_constants = ['10e-6','30e-6','100e-6','300e-6','1e-3','3e-3','10e-3','30e-3','100e-3','300e-3','1','3','10','30','100','300','1e3','3e3','10e3','30e3','']
+        self.time_constants = np.asarray([10e-6,30e-6,100e-6,300e-6,1e-3,3e-3,10e-3,30e-3,100e-3,300e-3,1,3,10,30,100,300,1e3,3e3,10e3,30e3])
         self.stopped = True
         self.started = False
         self.paused = False
         self.port="GPIB0::1"
         self.tool=SR830.Instrument(self.port)
-        print(self.tool.get_amplitude())
-        print(self.tool.set_amplitude(1.5))
         self.logscale = True
         self.set_layout()
         self.resize(480, 600)  
         self.dynamic_time_constant(self.FreqLB)
         self.refresh()
 
+    def find_nearest_tau_enum(self, freq):
+        idx = int((np.abs(self.time_constants - 1/freq)).argmin())
+        print("tau sec = {} enum = {}".format(self.time_constants[idx], idx))
+        return idx
 
     def on_bt_start_clicked(self):
         """Start something"""
@@ -98,6 +102,7 @@ class BodeWidget(QtGui.QWidget):
         # self.tool.sync_off()
         self.tool.set_freq(self.logspace[0])
         self.dynamic_time_constant(self.logspace[0])
+        # self.run()
         if USE_PYQT5:
             self.sg_start_something.emit()
         else:
@@ -219,10 +224,10 @@ class BodeWidget(QtGui.QWidget):
 
             self.bt_start.setFixedWidth(150)
             self.bt_start.setText('Clear and Restart')
-            self.grid.addWidget(self.bt_start, 19,0)
+            # self.grid.addWidget(self.bt_start, 19,0)
 
             self.bt_stop.setFixedWidth(150)
-            self.grid.addWidget(self.bt_start, 19,1)
+            # self.grid.addWidget(self.bt_stop, 19,1)
 
             self.bt_stop.setEnabled(False)
 
@@ -259,6 +264,19 @@ class BodeWidget(QtGui.QWidget):
             self.refresh()
             return tau
 
+
+
+    def dynamic_time_constant(self, freq):
+        pass
+
+
+    def run (self):
+        for freq in self.logspace:
+            self.tool.set_freq(freq)
+            sleeptime = max(1, 5 / self.tool.get_freq())+2
+            print("\nSetter sleeping for tau = {}".format(sleeptime))
+            time.sleep(sleeptime)
+        self.on_bt_stop_clicked()
 
 
     def set_amplitude_handler(self):
@@ -335,7 +353,7 @@ class BodeWidget(QtGui.QWidget):
                 self.df = 0.0001
                 print ("df (Hz) is below hardware resolution")
 
-            self.log_num_samples = df
+            self.log_num_samples = int(df)
 
             if not self.logscale: print(("Linear df (Hz) = "+str(self.df)))
             else: print(("Logscale number of samples = "+str(self.log_num_samples)))
@@ -384,10 +402,7 @@ class BodeWidget(QtGui.QWidget):
                     single_iteration_logspace=single_iteration_logspace[::-1]
                     self.logspace.extend(single_iteration_logspace)
                 print(self.logspace)
-                self.log_num_samples = len(self.logspace)
-                self.dynamic_time_constant(self.logspace[0])
                 self.log_current_sample = 0
-                self.log_num_samples = len(self.logspace)
             else:
                 self.dynamic_time_constant(self.FreqLB)
                 self.setdfLe.setText(str(self.df))
@@ -432,11 +447,11 @@ def add_widget_into_main(parent):
     dock_widget.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
 
     dock_widget.setWidget(mywidget)
-    parent.addDockWidget(Qt.RightDockWidgetArea, dock_widget)
+    parent.addDockWidget(Qt.LeftDockWidgetArea, dock_widget)
 
     # Enable the toggle view action of this widget as a "window" menu option
     parent.windowMenu.addAction(dock_widget.toggleViewAction())
-    dock_widget.hide()
+    dock_widget.show()
 
     # assigning the method defined in this file to the parent class so we can
     # use them to setup signals between our ExampleWidget and LabGuiMain

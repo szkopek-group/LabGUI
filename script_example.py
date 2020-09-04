@@ -11,9 +11,16 @@ the namespace of DataTaker.
 
 print("INIT DONE")
 # print self.instruments
-while self.isStopped() == False:
+while self.widget.log_current_sample<len(self.widget.logspace): #self.isStopped() == False and
+    freq = self.widget.logspace[self.widget.log_current_sample]
+    tau_enum = self.widget.tool.set_tau( self.widget.find_nearest_tau_enum(float(freq)))
+    self.widget.tool.set_freq(freq)
+    tau_sec = self.widget.time_constants[tau_enum]
+    sleeptime = max(1, 5 * tau_sec)
 
-    # This initiates the measure sequence in datataker
+    print("Sleeping for tau = {} at freq = {}".format(sleeptime, self.widget.logspace[self.widget.log_current_sample]))
+    time.sleep(sleeptime)
+
     self.read_data()
-    time.sleep(1)
     self.check_stopped_or_paused()
+    self.widget.log_current_sample += 1

@@ -12,6 +12,7 @@ import os
 
 from LabGuiExceptions import ScriptFile_Error
 from LabTools.IO import IOTool
+from LabDrivers import SR830
 
 ####
 #import sys
@@ -80,6 +81,11 @@ class DataTaker(QThread):
         self.t_start = None
         # scriptize the intruments and their parameters
         self.reset_lists()
+
+        #Bode
+        from LabTools.UserWidgets import Bode
+        self.widget = Bode.BodeWidget()
+        self.widget.show()
 
     def initialize(self, first_time=False):
         self.stopped = False
@@ -169,6 +175,7 @@ user variable")
             if(ext != ".py"):
                 raise(ScriptFile_Error("Incorrect filetype: %s"
                                        % (ext)))
+            # This initiates the measure sequence in datataker
             script = open(userScriptName)
             py_compile.compile(script.name, doraise=True)
             code = compile(script.read(), script.name, 'exec')
