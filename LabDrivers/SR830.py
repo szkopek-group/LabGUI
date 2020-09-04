@@ -199,7 +199,7 @@ class Instrument(Tool.MeasInstr):
         """
         if not self.DEBUG:
             try:
-                return float(self.ask('OUTP? ' + str(num)))
+                return float(self.ask('OUTP? ' + str(num)).replace("\n",""))
             except ValueError:
                 logging.error("The value returned by the lockin GPIB::%s was \
                 not a number, when this happened it was a problem from the \

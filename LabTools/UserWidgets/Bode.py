@@ -224,12 +224,14 @@ class BodeWidget(QtGui.QWidget):
 
             self.bt_start.setFixedWidth(150)
             self.bt_start.setText('Clear and Restart')
-            # self.grid.addWidget(self.bt_start, 19,0)
+            self.grid.addWidget(self.bt_start, 19,0)
 
             self.bt_stop.setFixedWidth(150)
-            # self.grid.addWidget(self.bt_stop, 19,1)
+            self.grid.addWidget(self.bt_stop, 19,1)
 
             self.bt_stop.setEnabled(False)
+            self.bt_stop.setVisible(False)
+            self.bt_start.setVisible(False)
 
 
 
