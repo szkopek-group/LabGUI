@@ -80,7 +80,7 @@ class BodeWidget(QtGui.QWidget):
         self.stopped = True
         self.started = False
         self.paused = False
-        self.port="GPIB0::1"
+        self.port="GPIB0::1" #TODO
         self.tool=SR830.Instrument(self.port)
         self.logscale = True
         self.set_layout()
@@ -89,8 +89,9 @@ class BodeWidget(QtGui.QWidget):
         self.refresh()
 
     def find_nearest_tau_enum(self, freq):
-        idx = int((np.abs(self.time_constants - 1/freq)).argmin())
-        print("tau sec = {} enum = {}".format(self.time_constants[idx], idx))
+        closestIdx = int((np.abs(self.time_constants - 1/freq)).argmin())+1
+        idx = min(max(11, closestIdx), 19)
+        print("\nSet tau sec = {} enum = {}".format(self.time_constants[idx], idx))
         return idx
 
     def on_bt_start_clicked(self):
