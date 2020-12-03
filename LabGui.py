@@ -1523,6 +1523,40 @@ have the right format, '%s' will be used instead"
         #self.exit(self.EXIT_CODE_REBOOT)
     #    relaunch_LabGui()
 
+################ ENABLE ERROR HANDLING #######################
+ex = None
+app = None
+
+sys._excepthook = sys.excepthook
+def error_message(value):
+    global ex, app
+    msg = QtGui.QMessageBox.critical(ex,
+                                     "Error!",
+                                     "LabGUI failed with the following error:\n %s\n Relaunch?" % value,
+                                     QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
+                                     QtGui.QMessageBox.Yes
+                                     )
+    if msg == QtGui.QMessageBox.Yes:
+        for entry in QtGui.qApp.allWidgets():
+            if(type(entry).__name__ == 'LabGuiMain'):
+                print(entry, dir(entry), type(entry))
+                if hasattr(entry, "relaunch"):
+                    entry.relaunch(True)
+                else:
+                    entry.close()
+        app.exit(LabGuiMain.EXIT_CODE_REBOOT)
+    else:
+        sys.exit(0)
+def custom_exception_hook(exctype, value, traceback):
+    # Print the error and traceback
+    logging.error((exctype, value, traceback))
+    # Call the normal Exception hook after
+    sys._excepthook(exctype, value, traceback)
+    error_message(str(value))
+
+# Set the exception hook to our wrapping function
+sys.excepthook = custom_exception_hook
+####################################################################
 def launch_LabGui():
     #global WIDGET_INSTANCE, app
     currentExitCode = LabGuiMain.EXIT_CODE_REBOOT
